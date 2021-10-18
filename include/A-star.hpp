@@ -266,8 +266,8 @@ public:
 
 
 private:
-	const int D = 10;
-	const int D2 = 14;
+	const int D = 10;  //non-diagonal cost
+	const int D2 = 14; //diagonal cost
 
 	const unsigned int m_GRIDSPACING = 0;
 
