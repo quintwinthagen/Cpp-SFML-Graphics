@@ -1,8 +1,6 @@
 #include "SFML/Graphics.hpp"
 #include <Windows.h>
 #include <iostream>
-#include <assert.h>
-#include <set>
 #include <vector>
 
 struct node
@@ -42,9 +40,9 @@ public:
 
 	void Init() 
 	{
-		srand(time(nullptr));
+		srand(time(nullptr)); //seed rng
 		m_Grid = std::shared_ptr<node[]>(new node[m_GridWidth * m_GridHeight]);
-		for (int y = 0; y < m_GridHeight; y++)
+		for (int y = 0; y < m_GridHeight; y++) //initialize grid with nodes and obstacles
 		{
 			for (int x = 0; x < m_GridWidth; x++)
 			{
@@ -56,7 +54,7 @@ public:
 
 		for (auto o : m_Obstacles)
 		{
-			o = (rand() % 5 == 0);
+			o = (rand() % 5 == 0); //create field of randomly placed obstacles
 		}
 
 		m_StartNode = &m_Grid[rand() % (m_GridWidth * m_GridHeight)];
@@ -66,21 +64,7 @@ public:
 		m_Obstacles[m_TargetNode->Pos.x + m_TargetNode->Pos.y * m_GridWidth] = false;
 
 		std::cout << "Starting Node:" << m_StartNode->Pos.x << ", " << m_StartNode->Pos.y << ", Target Node: " << m_TargetNode->Pos.x << ", " << m_TargetNode->Pos.y << std::endl;
-		m_OpenSet.push_back(m_StartNode);
-
-		//for (int x = 1; x < m_GridWidth - 1; x++)
-		//{
-		//	m_Obstacles[x + 25 * m_GridWidth] = true;
-		//}
-
-		//m_Obstacles[15] = true;
-		//m_Obstacles[27] = true;
-		//m_Obstacles[28] = true;
-		//m_Obstacles[29] = true;
-		//m_Obstacles[30] = true;
-		//m_Obstacles[31] = true;
-
-
+		m_OpenSet.push_back(m_StartNode); //push first node to openset
 	}
 
 
@@ -101,16 +85,17 @@ public:
 			m_ClosedSet.push_back(current);
 
 
-			for (int dy = -1; dy <= 1; dy++)
+			for (int dy = -1; dy <= 1; dy++) //iterate through all 8 neighbors
 			{
 				for (int dx = -1; dx <= 1; dx++)
 				{
-					if (!(dx == 0 && dy == 0))
+					if (!(dx == 0 && dy == 0)) //not including itself
 					{
-						if ((current->Pos.x + dx < m_GridWidth && current->Pos.x + dx >= 0) && (current->Pos.y + dy < m_GridHeight && current->Pos.y + dy >= 0) && !m_Obstacles[current->Pos.x + dx + (current->Pos.y + dy) * m_GridWidth])
+						if ((current->Pos.x + dx < m_GridWidth && current->Pos.x + dx >= 0) && (current->Pos.y + dy < m_GridHeight && current->Pos.y + dy >= 0)
+							&& !m_Obstacles[current->Pos.x + dx + (current->Pos.y + dy) * m_GridWidth]) //check if within boudaries and is not obstacle
 						{
 							node& succesor = m_Grid[current->Pos.x + dx + (current->Pos.y + dy) * m_GridWidth];
-							int tentative_g = current->g + ((current->Pos.x != succesor.Pos.x && current->Pos.y != succesor.Pos.y) ? D2 : D);
+							int tentative_g = current->g + ((current->Pos.x != succesor.Pos.x && current->Pos.y != succesor.Pos.y) ? D2 : D); //calulate g score
 							if (!IsInOpenSet(succesor.Pos) && !IsInClosedSet(succesor.Pos))
 							{
 								succesor.g = tentative_g;
@@ -145,35 +130,34 @@ public:
 		return best_index;
 	}
 
+
 	bool IsInOpenSet(sf::Vector2i pos)
 	{
-		bool ret = false;
 		for (int i = 0; i < m_OpenSet.size(); i++)
 		{
 			if (m_OpenSet[i]->Pos == pos)
 			{
-				ret = true;
-					break;
+				return true;
 			}
 		}
 
-		return ret;
+		return false;
 	}
+
 
 	bool IsInClosedSet(sf::Vector2i pos)
 	{
-		bool ret = false;
 		for (int i = 0; i < m_ClosedSet.size(); i++)
 		{
 			if (m_ClosedSet[i]->Pos == pos)
 			{
-				ret = true;
-				break;
+				return true;
 			}
 		}
 
-		return ret;
+		return false;
 	}
+
 
 	int CalculateHeuristic(node& n) const
 	{
@@ -188,9 +172,6 @@ public:
 
 		/*Euclidian Distance*/
 		//return sqrt( (n.Pos.x - m_TargetNode->Pos.x) * (n.Pos.x - m_TargetNode->Pos.x) + (n.Pos.y - m_TargetNode->Pos.y) * (n.Pos.y - m_TargetNode->Pos.y));
-
-		/* Quint Distance*/
-		//return (n.Pos.x - m_TargetNode->Pos.x) + (n.Pos.y - m_TargetNode->Pos.y);
 	}
 
 	void BackTrack()
@@ -285,7 +266,6 @@ public:
 
 
 private:
-
 	const int D = 10;
 	const int D2 = 14;
 
@@ -293,14 +273,21 @@ private:
 
 	size_t m_GridWidth, m_GridHeight;
 	size_t m_WindowWidth, m_WindowHeight;
+	
 	unsigned int m_NodeSize; //size of nodes in pixels;
+	
 	node* m_StartNode;
 	node* m_TargetNode;
+	
 	std::shared_ptr<node[]> m_Grid;
+	
 	std::vector<node*> m_ClosedSet;
 	std::vector<node*> m_OpenSet;
+	
 	std::vector<bool> m_Obstacles;
+	
 	std::vector<sf::Vector2i> m_FinishedPath;
+	
 	sf::VertexArray m_Vertices;		//Vertex Array for openset, closedset, startnode and targetnode
 	sf::VertexArray m_GridVertices; //Vertex Array for gridlines
 	sf::VertexArray m_MiscVertices; //Vertex Array for obstacles and final path
