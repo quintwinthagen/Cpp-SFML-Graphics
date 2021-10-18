@@ -1,5 +1,5 @@
 #include "SFML/Graphics.hpp"
-#include "AstarQ.hpp"
+#include "A-star.hpp"
 #include <iostream>
 
 
